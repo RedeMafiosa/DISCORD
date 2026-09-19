@@ -12,27 +12,25 @@ const CLIENT_ID = "1403430139647365180";
 const GUILD_ID = "1550134429161230407";
 
 if (!TOKEN) {
-  console.error("ERRO: TOKEN não configurado no Render.");
+  console.error("ERRO: A variável TOKEN não está configurada no Render.");
   process.exit(1);
 }
 
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds]
+  intents: [
+    GatewayIntentBits.Guilds
+  ]
 });
 
+// Comando /msgu
 const command = new SlashCommandBuilder()
   .setName("msgu")
-  .setDescription("Envia uma mensagem através do bot.")
-  .addStringOption(option =>
-    option
-      .setName("texto")
-      .setDescription("Mensagem que o bot deve enviar")
-      .setRequired(true)
-      .setMaxLength(2000)
-  );
+  .setDescription("Envia uma mensagem oficial do bot.");
 
 async function registerCommand() {
   const rest = new REST({ version: "10" }).setToken(TOKEN);
+
+  console.log("A registar o comando /msgu...");
 
   await rest.put(
     Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
@@ -41,7 +39,7 @@ async function registerCommand() {
     }
   );
 
-  console.log("Comando /msgu registado.");
+  console.log("/msgu registado com sucesso!");
 }
 
 client.once("clientReady", () => {
@@ -50,26 +48,37 @@ client.once("clientReady", () => {
 
 client.on("interactionCreate", async interaction => {
   if (!interaction.isChatInputCommand()) return;
+
   if (interaction.commandName !== "msgu") return;
 
-  const texto = interaction.options.getString("texto", true);
-
   try {
+    // Confirma apenas para quem executou o comando
     await interaction.reply({
-      content: texto
+      content: "Mensagem enviada.",
+      ephemeral: true
     });
+
+    // Mensagem normal do bot para todos
+    await interaction.channel.send({
+      content: "Mensagem oficial do bot."
+    });
+
   } catch (error) {
-    console.error("ERRO AO ENVIAR:");
+    console.error("ERRO NO /msgu:");
     console.error(error);
   }
 });
 
 async function start() {
   try {
+    console.log("A iniciar...");
+
     await registerCommand();
+
     await client.login(TOKEN);
+
   } catch (error) {
-    console.error("ERRO AO INICIAR:");
+    console.error("ERRO AO INICIAR O BOT:");
     console.error(error);
     process.exit(1);
   }
