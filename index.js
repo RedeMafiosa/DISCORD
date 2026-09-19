@@ -44,7 +44,7 @@ async function registerCommand() {
   console.log("Comando /under registado no servidor.");
 }
 
-client.once("ready", () => {
+client.once("clientReady", () => {
   console.log("BOT ONLINE: " + client.user.tag);
 });
 
@@ -56,24 +56,26 @@ client.on("interactionCreate", async interaction => {
   const texto = interaction.options.getString("texto", true);
 
   try {
-    // Responde primeiro à interação
-    await interaction.reply({
-      content: "Mensagem enviada!",
-      flags: 64
-    });
-
-    // Obtém o canal diretamente pelo ID
     const channel = await client.channels.fetch(interaction.channelId);
 
     if (!channel || !channel.isTextBased()) {
-      console.error("Não foi possível encontrar o canal.");
+      await interaction.reply({
+        content: "Não consegui encontrar este canal.",
+        flags: 64
+      });
       return;
     }
 
     await channel.send(texto);
 
+    await interaction.reply({
+      content: "Mensagem enviada!",
+      flags: 64
+    });
+
   } catch (error) {
-    console.error("Erro ao enviar mensagem:", error);
+    console.error("ERRO AO ENVIAR MENSAGEM:");
+    console.error(error);
 
     if (!interaction.replied && !interaction.deferred) {
       await interaction.reply({
@@ -100,5 +102,15 @@ async function start() {
     process.exit(1);
   }
 }
+
+process.on("unhandledRejection", error => {
+  console.error("UNHANDLED REJECTION:");
+  console.error(error);
+});
+
+process.on("uncaughtException", error => {
+  console.error("UNCAUGHT EXCEPTION:");
+  console.error(error);
+});
 
 start();
