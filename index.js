@@ -11,8 +11,8 @@ const TOKEN = process.env.TOKEN;
 const CLIENT_ID = "1403430139647365180";
 const GUILD_ID = process.env.GUILD_ID;
 
-if (!TOKEN || !CLIENT_ID) {
-  console.error("Falta a variável TOKEN no Render.");
+if (!TOKEN) {
+  console.error("ERRO: a variável TOKEN não está configurada no Render.");
   process.exit(1);
 }
 
@@ -37,14 +37,18 @@ async function registerCommand() {
   if (GUILD_ID) {
     await rest.put(
       Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
-      { body: [command.toJSON()] }
+      {
+        body: [command.toJSON()]
+      }
     );
 
-    console.log("Comando /undermsg registado neste servidor.");
+    console.log("Comando /undermsg registado no servidor.");
   } else {
     await rest.put(
       Routes.applicationCommands(CLIENT_ID),
-      { body: [command.toJSON()] }
+      {
+        body: [command.toJSON()]
+      }
     );
 
     console.log("Comando /undermsg registado globalmente.");
@@ -52,16 +56,51 @@ async function registerCommand() {
 }
 
 client.once("ready", () => {
-  console.log(`Bot online como ${client.user.tag}`);
+  console.log("BOT ONLINE: " + client.user.tag);
 });
 
 client.on("interactionCreate", async interaction => {
   if (!interaction.isChatInputCommand()) return;
+
   if (interaction.commandName !== "undermsg") return;
 
   const texto = interaction.options.getString("texto", true);
 
   try {
+    await interaction.channel.send(texto);
+
+    await interaction.reply({
+      content: "Mensagem enviada!",
+      ephemeral: true
+    });
+  } catch (error) {
+    console.error("Erro ao enviar mensagem:", error);
+
+    if (!interaction.replied && !interaction.deferred) {
+      await interaction.reply({
+        content: "Não consegui enviar a mensagem neste canal.",
+        ephemeral: true
+      });
+    }
+  }
+});
+
+async function start() {
+  try {
+    console.log("A registar comando...");
+    await registerCommand();
+
+    console.log("A iniciar bot...");
+    await client.login(TOKEN);
+  } catch (error) {
+    console.error("ERRO AO INICIAR O BOT:");
+    console.error(error);
+    process.exit(1);
+  }
+}
+
+start();
+```
     await interaction.channel.send(texto);
 
     await interaction.reply({
