@@ -1,9 +1,9 @@
 const {
-Client,
-GatewayIntentBits,
-REST,
-Routes,
-SlashCommandBuilder
+  Client,
+  GatewayIntentBits,
+  REST,
+  Routes,
+  SlashCommandBuilder
 } = require("discord.js");
 
 const TOKEN = process.env.TOKEN;
@@ -11,101 +11,88 @@ const CLIENT_ID = "1403430139647365180";
 const GUILD_ID = process.env.GUILD_ID;
 
 if (!TOKEN) {
-console.error("ERRO: a variável TOKEN não está configurada no Render.");
-process.exit(1);
+  console.error("ERRO: a variável TOKEN não está configurada no Render.");
+  process.exit(1);
 }
 
 const client = new Client({
-intents: [GatewayIntentBits.Guilds]
+  intents: [GatewayIntentBits.Guilds]
 });
 
 const command = new SlashCommandBuilder()
-.setName("under")
-.setDescription("Envia uma mensagem através do bot.")
-.addStringOption(option =>
-option
-.setName("texto")
-.setDescription("Texto que o bot deve enviar.")
-.setRequired(true)
-.setMaxLength(2000)
-);
+  .setName("under")
+  .setDescription("Envia uma mensagem através do bot.")
+  .addStringOption(option =>
+    option
+      .setName("texto")
+      .setDescription("Texto que o bot deve enviar.")
+      .setRequired(true)
+      .setMaxLength(2000)
+  );
 
 async function registerCommand() {
-const rest = new REST({ version: "10" }).setToken(TOKEN);
+  const rest = new REST({ version: "10" }).setToken(TOKEN);
 
-if (GUILD_ID) {
-await rest.put(
-Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
-{ body: [command.toJSON()] }
-);
+  if (GUILD_ID) {
+    await rest.put(
+      Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
+      { body: [command.toJSON()] }
+    );
 
-```
-console.log("Comando /under registado no servidor.");
-```
+    console.log("Comando /under registado no servidor.");
+  } else {
+    await rest.put(
+      Routes.applicationCommands(CLIENT_ID),
+      { body: [command.toJSON()] }
+    );
 
-} else {
-await rest.put(
-Routes.applicationCommands(CLIENT_ID),
-{ body: [command.toJSON()] }
-);
-
-```
-console.log("Comando /under registado globalmente.");
-```
-
-}
+    console.log("Comando /under registado globalmente.");
+  }
 }
 
 client.once("ready", () => {
-console.log("BOT ONLINE: " + client.user.tag);
+  console.log("BOT ONLINE: " + client.user.tag);
 });
 
 client.on("interactionCreate", async interaction => {
-if (!interaction.isChatInputCommand()) return;
-if (interaction.commandName !== "under") return;
+  if (!interaction.isChatInputCommand()) return;
+  if (interaction.commandName !== "under") return;
 
-const texto = interaction.options.getString("texto", true);
+  const texto = interaction.options.getString("texto", true);
 
-try {
-await interaction.channel.send(texto);
+  try {
+    await interaction.channel.send(texto);
 
-```
-await interaction.reply({
-  content: "Mensagem enviada!",
-  ephemeral: true
-});
-```
+    await interaction.reply({
+      content: "Mensagem enviada!",
+      ephemeral: true
+    });
+  } catch (error) {
+    console.error("Erro ao enviar mensagem:", error);
 
-} catch (error) {
-console.error("Erro ao enviar mensagem:", error);
-
-```
-if (!interaction.replied && !interaction.deferred) {
-  await interaction.reply({
-    content: "Não consegui enviar a mensagem neste canal.",
-    ephemeral: true
-  });
-}
-```
-
-}
+    if (!interaction.replied && !interaction.deferred) {
+      await interaction.reply({
+        content: "Não consegui enviar a mensagem neste canal.",
+        ephemeral: true
+      });
+    }
+  }
 });
 
 async function start() {
-try {
-console.log("A registar comando...");
-await registerCommand();
+  try {
+    console.log("A registar comando...");
 
-```
-console.log("A iniciar bot...");
-await client.login(TOKEN);
-```
+    await registerCommand();
 
-} catch (error) {
-console.error("ERRO AO INICIAR O BOT:");
-console.error(error);
-process.exit(1);
-}
+    console.log("A iniciar bot...");
+
+    await client.login(TOKEN);
+  } catch (error) {
+    console.error("ERRO AO INICIAR O BOT:");
+    console.error(error);
+    process.exit(1);
+  }
 }
 
 start();
