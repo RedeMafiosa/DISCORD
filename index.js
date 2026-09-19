@@ -12,7 +12,7 @@ const CLIENT_ID = "1403430139647365180";
 const GUILD_ID = "1550134429161230407";
 
 if (!TOKEN) {
-  console.error("ERRO: a variável TOKEN não está configurada no Render.");
+  console.error("ERRO: TOKEN não configurado no Render.");
   process.exit(1);
 }
 
@@ -36,39 +36,33 @@ async function registerCommand() {
 
   await rest.put(
     Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
-    { body: [command.toJSON()] }
+    {
+      body: [command.toJSON()]
+    }
   );
 
   console.log("Comando /under registado no servidor.");
 }
 
-client.once("ready", () => {
+client.once("clientReady", () => {
   console.log("BOT ONLINE: " + client.user.tag);
 });
 
 client.on("interactionCreate", async interaction => {
   if (!interaction.isChatInputCommand()) return;
-
   if (interaction.commandName !== "under") return;
 
   const texto = interaction.options.getString("texto", true);
 
   try {
-    await interaction.channel.send(texto);
-
+    // Envia apenas UMA resposta à interação
     await interaction.reply({
-      content: "Mensagem enviada!",
-      ephemeral: true
+      content: texto
     });
-  } catch (error) {
-    console.error("Erro ao enviar mensagem:", error);
 
-    if (!interaction.replied && !interaction.deferred) {
-      await interaction.reply({
-        content: "Não consegui enviar a mensagem neste canal.",
-        ephemeral: true
-      });
-    }
+  } catch (error) {
+    console.error("ERRO NO /UNDER:");
+    console.error(error);
   }
 });
 
@@ -81,11 +75,20 @@ async function start() {
     console.log("A iniciar bot...");
 
     await client.login(TOKEN);
+
   } catch (error) {
     console.error("ERRO AO INICIAR O BOT:");
     console.error(error);
     process.exit(1);
   }
 }
+
+process.on("unhandledRejection", error => {
+  console.error("UNHANDLED REJECTION:", error);
+});
+
+process.on("uncaughtException", error => {
+  console.error("UNCAUGHT EXCEPTION:", error);
+});
 
 start();
