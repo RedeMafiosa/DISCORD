@@ -21,7 +21,7 @@ const client = new Client({
 });
 
 const command = new SlashCommandBuilder()
-  .setName("undermsg")
+  .setName("under")
   .setDescription("Envia uma mensagem através do bot.")
   .addStringOption(option =>
     option
@@ -42,7 +42,7 @@ async function registerCommand() {
       }
     );
 
-    console.log("Comando /undermsg registado no servidor.");
+    console.log("Comando /under registado no servidor.");
   } else {
     await rest.put(
       Routes.applicationCommands(CLIENT_ID),
@@ -51,7 +51,7 @@ async function registerCommand() {
       }
     );
 
-    console.log("Comando /undermsg registado globalmente.");
+    console.log("Comando /under registado globalmente.");
   }
 }
 
@@ -61,8 +61,7 @@ client.once("ready", () => {
 
 client.on("interactionCreate", async interaction => {
   if (!interaction.isChatInputCommand()) return;
-
-  if (interaction.commandName !== "undermsg") return;
+  if (interaction.commandName !== "under") return;
 
   const texto = interaction.options.getString("texto", true);
 
@@ -100,32 +99,4 @@ async function start() {
 }
 
 start();
-```
-    await interaction.channel.send(texto);
-
-    await interaction.reply({
-      content: "Mensagem enviada!",
-      ephemeral: true
-    });
-  } catch (error) {
-    console.error(error);
-
-    if (!interaction.replied && !interaction.deferred) {
-      await interaction.reply({
-        content: "Não consegui enviar a mensagem neste canal.",
-        ephemeral: true
-      });
-    }
-  }
-});
-
-(async () => {
-  try {
-    await registerCommand();
-    await client.login(TOKEN);
-  } catch (error) {
-    console.error("Erro ao iniciar o bot:", error);
-    process.exit(1);
-  }
-})();
 ```
