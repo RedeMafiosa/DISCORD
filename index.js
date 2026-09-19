@@ -22,14 +22,7 @@ const client = new Client({
 
 const command = new SlashCommandBuilder()
   .setName("msgu")
-  .setDescription("Envia uma mensagem através do bot.")
-  .addStringOption(option =>
-    option
-      .setName("texto")
-      .setDescription("Mensagem que o bot deve enviar")
-      .setRequired(true)
-      .setMaxLength(2000)
-  );
+  .setDescription("Envia uma mensagem oficial.");
 
 async function registerCommand() {
   const rest = new REST({ version: "10" }).setToken(TOKEN);
@@ -52,14 +45,18 @@ client.on("interactionCreate", async interaction => {
   if (!interaction.isChatInputCommand()) return;
   if (interaction.commandName !== "msgu") return;
 
-  const texto = interaction.options.getString("texto", true);
-
   try {
     await interaction.reply({
-      content: texto
+      content: "Mensagem oficial enviada.",
+      ephemeral: true
     });
+
+    await interaction.channel.send({
+      content: "Mensagem oficial do bot."
+    });
+
   } catch (error) {
-    console.error("ERRO AO ENVIAR:");
+    console.error("ERRO NO /msgu:");
     console.error(error);
   }
 });
