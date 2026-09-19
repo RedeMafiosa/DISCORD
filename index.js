@@ -50,38 +50,19 @@ client.once("clientReady", () => {
 
 client.on("interactionCreate", async interaction => {
   if (!interaction.isChatInputCommand()) return;
+
   if (interaction.commandName !== "under") return;
 
   const texto = interaction.options.getString("texto", true);
 
   try {
-    const channel = await client.channels.fetch(interaction.channelId);
-
-    if (!channel || !channel.isTextBased()) {
-      await interaction.reply({
-        content: "Não consegui encontrar este canal.",
-        flags: 64
-      });
-      return;
-    }
-
-    await channel.send(texto);
-
     await interaction.reply({
-      content: "✓",
-      flags: 64
+      content: texto
     });
 
   } catch (error) {
     console.error("ERRO AO ENVIAR MENSAGEM:");
     console.error(error);
-
-    if (!interaction.replied && !interaction.deferred) {
-      await interaction.reply({
-        content: "Erro ao enviar a mensagem.",
-        flags: 64
-      });
-    }
   }
 });
 
