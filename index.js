@@ -50,7 +50,6 @@ client.once("clientReady", () => {
 
 client.on("interactionCreate", async interaction => {
   if (!interaction.isChatInputCommand()) return;
-
   if (interaction.commandName !== "under") return;
 
   const texto = interaction.options.getString("texto", true);
@@ -68,8 +67,9 @@ client.on("interactionCreate", async interaction => {
 
     await channel.send(texto);
 
+    // Resposta invisível para confirmar o comando
     await interaction.reply({
-      content: "Mensagem enviada!",
+      content: "✓",
       flags: 64
     });
 
@@ -79,7 +79,7 @@ client.on("interactionCreate", async interaction => {
 
     if (!interaction.replied && !interaction.deferred) {
       await interaction.reply({
-        content: "Não consegui enviar a mensagem neste canal.",
+        content: "Erro ao enviar a mensagem.",
         flags: 64
       });
     }
@@ -104,13 +104,11 @@ async function start() {
 }
 
 process.on("unhandledRejection", error => {
-  console.error("UNHANDLED REJECTION:");
-  console.error(error);
+  console.error("UNHANDLED REJECTION:", error);
 });
 
 process.on("uncaughtException", error => {
-  console.error("UNCAUGHT EXCEPTION:");
-  console.error(error);
+  console.error("UNCAUGHT EXCEPTION:", error);
 });
 
 start();
