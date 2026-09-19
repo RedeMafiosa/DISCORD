@@ -7,8 +7,9 @@ const {
 } = require("discord.js");
 
 const TOKEN = process.env.TOKEN;
+
 const CLIENT_ID = "1403430139647365180";
-const GUILD_ID = process.env.GUILD_ID;
+const GUILD_ID = "1550134429161230407";
 
 if (!TOKEN) {
   console.error("ERRO: a variável TOKEN não está configurada no Render.");
@@ -33,21 +34,12 @@ const command = new SlashCommandBuilder()
 async function registerCommand() {
   const rest = new REST({ version: "10" }).setToken(TOKEN);
 
-  if (GUILD_ID) {
-    await rest.put(
-      Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
-      { body: [command.toJSON()] }
-    );
+  await rest.put(
+    Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
+    { body: [command.toJSON()] }
+  );
 
-    console.log("Comando /under registado no servidor.");
-  } else {
-    await rest.put(
-      Routes.applicationCommands(CLIENT_ID),
-      { body: [command.toJSON()] }
-    );
-
-    console.log("Comando /under registado globalmente.");
-  }
+  console.log("Comando /under registado no servidor.");
 }
 
 client.once("ready", () => {
@@ -56,6 +48,7 @@ client.once("ready", () => {
 
 client.on("interactionCreate", async interaction => {
   if (!interaction.isChatInputCommand()) return;
+
   if (interaction.commandName !== "under") return;
 
   const texto = interaction.options.getString("texto", true);
