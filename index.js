@@ -1,3 +1,4 @@
+```js
 const {
   Client,
   GatewayIntentBits,
@@ -6,12 +7,15 @@ const {
   SlashCommandBuilder
 } = require("discord.js");
 
+// O TOKEN deve ser configurado no Render como variável de ambiente.
+// NÃO coloque o token diretamente neste arquivo.
 const TOKEN = process.env.TOKEN;
-const CLIENT_ID = process.env.CLIENT_ID;
-const GUILD_ID = process.env.GUILD_ID; // opcional: regista o comando apenas neste servidor
+
+const CLIENT_ID = "1403430139647365180";
+const GUILD_ID = process.env.GUILD_ID; // opcional
 
 if (!TOKEN || !CLIENT_ID) {
-  console.error("Faltam as variáveis TOKEN e/ou CLIENT_ID no Render.");
+  console.error("Falta a variável TOKEN no Render.");
   process.exit(1);
 }
 
@@ -38,13 +42,13 @@ async function registerCommand() {
       Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
       { body: [command.toJSON()] }
     );
-    console.log("Comando /undermsg registado neste servidor.");
+    console.log("Comando /under registado neste servidor.");
   } else {
     await rest.put(
       Routes.applicationCommands(CLIENT_ID),
       { body: [command.toJSON()] }
     );
-    console.log("Comando /undermsg registado globalmente.");
+    console.log("Comando /under registado globalmente.");
   }
 }
 
@@ -54,18 +58,20 @@ client.once("ready", () => {
 
 client.on("interactionCreate", async interaction => {
   if (!interaction.isChatInputCommand()) return;
-  if (interaction.commandName !== "undermsg") return;
+  if (interaction.commandName !== "under") return;
 
   const texto = interaction.options.getString("texto", true);
 
   try {
     await interaction.channel.send(texto);
+
     await interaction.reply({
       content: "Mensagem enviada!",
       ephemeral: true
     });
   } catch (error) {
     console.error(error);
+
     if (!interaction.replied && !interaction.deferred) {
       await interaction.reply({
         content: "Não consegui enviar a mensagem neste canal.",
@@ -84,3 +90,4 @@ client.on("interactionCreate", async interaction => {
     process.exit(1);
   }
 })();
+```
