@@ -36,7 +36,9 @@ async function registerCommand() {
 
   await rest.put(
     Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
-    { body: [command.toJSON()] }
+    {
+      body: [command.toJSON()]
+    }
   );
 
   console.log("Comando /under registado no servidor.");
@@ -54,19 +56,29 @@ client.on("interactionCreate", async interaction => {
   const texto = interaction.options.getString("texto", true);
 
   try {
-    await interaction.channel.send(texto);
-
+    // Responde primeiro à interação
     await interaction.reply({
       content: "Mensagem enviada!",
-      ephemeral: true
+      flags: 64
     });
+
+    // Obtém o canal diretamente pelo ID
+    const channel = await client.channels.fetch(interaction.channelId);
+
+    if (!channel || !channel.isTextBased()) {
+      console.error("Não foi possível encontrar o canal.");
+      return;
+    }
+
+    await channel.send(texto);
+
   } catch (error) {
     console.error("Erro ao enviar mensagem:", error);
 
     if (!interaction.replied && !interaction.deferred) {
       await interaction.reply({
         content: "Não consegui enviar a mensagem neste canal.",
-        ephemeral: true
+        flags: 64
       });
     }
   }
@@ -81,6 +93,7 @@ async function start() {
     console.log("A iniciar bot...");
 
     await client.login(TOKEN);
+
   } catch (error) {
     console.error("ERRO AO INICIAR O BOT:");
     console.error(error);
