@@ -6,21 +6,39 @@ const {
   SlashCommandBuilder
 } = require("discord.js");
 
+const http = require("http");
+
 const TOKEN = process.env.TOKEN;
 
 const CLIENT_ID = "1403430139647365180";
 const GUILD_ID = "1550134429161230407";
+
+const PORT = process.env.PORT || 3000;
+
+// Servidor HTTP para o Render Web Service
+http.createServer((req, res) => {
+  res.writeHead(200, {
+    "Content-Type": "text/plain"
+  });
+
+  res.end("Bot online");
+}).listen(PORT, "0.0.0.0", () => {
+  console.log("Servidor HTTP ativo na porta " + PORT);
+});
 
 if (!TOKEN) {
   console.error("ERRO: TOKEN não configurado no Render.");
   process.exit(1);
 }
 
+// Cliente Discord
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds]
+  intents: [
+    GatewayIntentBits.Guilds
+  ]
 });
 
-// /msgu + texto
+// Comando /msgu + texto
 const command = new SlashCommandBuilder()
   .setName("msgu")
   .setDescription("Envia uma mensagem oficial do bot.")
@@ -32,6 +50,7 @@ const command = new SlashCommandBuilder()
       .setMaxLength(2000)
   );
 
+// Registar /msgu no servidor
 async function registerCommand() {
   const rest = new REST({ version: "10" }).setToken(TOKEN);
 
@@ -47,27 +66,32 @@ async function registerCommand() {
   console.log("/msgu registado com sucesso!");
 }
 
+// Bot online
 client.once("clientReady", () => {
   console.log("BOT ONLINE: " + client.user.tag);
 });
 
+// Quando alguém usa /msgu
 client.on("interactionCreate", async interaction => {
   if (!interaction.isChatInputCommand()) return;
+
   if (interaction.commandName !== "msgu") return;
 
   const texto = interaction.options.getString("texto", true);
 
   try {
-    // Resposta privada para quem executou o comando
+    // Confirmação privada para quem executou
     await interaction.reply({
       content: "Mensagem enviada.",
       flags: 64
     });
 
-    // Mensagem oficial visível para todos
+    // Mensagem oficial para todos no canal
     await interaction.channel.send({
       content: texto
     });
+
+    console.log("Mensagem enviada:", texto);
 
   } catch (error) {
     console.error("ERRO NO /msgu:");
@@ -75,6 +99,7 @@ client.on("interactionCreate", async interaction => {
   }
 });
 
+// Iniciar
 async function start() {
   try {
     console.log("A iniciar...");
