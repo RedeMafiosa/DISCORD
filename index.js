@@ -12,20 +12,25 @@ const CLIENT_ID = "1403430139647365180";
 const GUILD_ID = "1550134429161230407";
 
 if (!TOKEN) {
-  console.error("ERRO: A variável TOKEN não está configurada no Render.");
+  console.error("ERRO: TOKEN não configurado no Render.");
   process.exit(1);
 }
 
 const client = new Client({
-  intents: [
-    GatewayIntentBits.Guilds
-  ]
+  intents: [GatewayIntentBits.Guilds]
 });
 
-// Comando /msgu
+// /msgu + texto
 const command = new SlashCommandBuilder()
   .setName("msgu")
-  .setDescription("Envia uma mensagem oficial do bot.");
+  .setDescription("Envia uma mensagem oficial do bot.")
+  .addStringOption(option =>
+    option
+      .setName("texto")
+      .setDescription("Texto que o bot vai enviar")
+      .setRequired(true)
+      .setMaxLength(2000)
+  );
 
 async function registerCommand() {
   const rest = new REST({ version: "10" }).setToken(TOKEN);
@@ -48,19 +53,20 @@ client.once("clientReady", () => {
 
 client.on("interactionCreate", async interaction => {
   if (!interaction.isChatInputCommand()) return;
-
   if (interaction.commandName !== "msgu") return;
 
+  const texto = interaction.options.getString("texto", true);
+
   try {
-    // Confirma apenas para quem executou o comando
+    // Resposta privada para quem executou o comando
     await interaction.reply({
       content: "Mensagem enviada.",
-      ephemeral: true
+      flags: 64
     });
 
-    // Mensagem normal do bot para todos
+    // Mensagem oficial visível para todos
     await interaction.channel.send({
-      content: "Mensagem oficial do bot."
+      content: texto
     });
 
   } catch (error) {
