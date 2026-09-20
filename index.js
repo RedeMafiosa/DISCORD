@@ -13,34 +13,27 @@ const http = require("http");
 // CONFIGURAÇÃO
 // =====================================================
 
-// NUNCA colocar o token diretamente neste arquivo.
-// No Render, criar:
-// TOKEN = teu_novo_token
 const TOKEN = process.env.TOKEN;
 
 const CLIENT_ID = "1403430139647365180";
 const GUILD_ID = "1550134429161230407";
 
-const PORT = Number(process.env.PORT) || 10000;
+const PORT = process.env.PORT || 10000;
 
 // =====================================================
-// VERIFICAÇÃO
+// VERIFICAR TOKEN
 // =====================================================
 
 if (!TOKEN) {
-  console.error("========================================");
-  console.error("ERRO: TOKEN não está configurado.");
-  console.error("No Render, crie a variável:");
-  console.error("TOKEN = teu token do bot");
-  console.error("========================================");
+  console.error("ERRO: TOKEN não está configurado no Render.");
   process.exit(1);
 }
 
 // =====================================================
-// SERVIDOR HTTP PARA O RENDER
+// SERVIDOR HTTP
 // =====================================================
 
-const server = http.createServer((req, res) => {
+const server = http.createServer(function (req, res) {
   if (req.url === "/health") {
     res.writeHead(200, {
       "Content-Type": "application/json"
@@ -61,8 +54,8 @@ const server = http.createServer((req, res) => {
   res.end("Bot online");
 });
 
-server.listen(PORT, "0.0.0.0", () => {
-  console.log(`Servidor HTTP ativo na porta ${PORT}`);
+server.listen(PORT, "0.0.0.0", function () {
+  console.log("Servidor HTTP ativo na porta " + PORT);
 });
 
 // =====================================================
@@ -82,16 +75,16 @@ const client = new Client({
 const command = new SlashCommandBuilder()
   .setName("msgu")
   .setDescription("Envia uma mensagem oficial do bot.")
-  .addStringOption(option =>
-    option
+  .addStringOption(function (option) {
+    return option
       .setName("texto")
       .setDescription("Texto que o bot vai enviar")
       .setRequired(true)
-      .setMaxLength(2000)
-  );
+      .setMaxLength(2000);
+  });
 
 // =====================================================
-// REGISTAR COMANDO
+// REGISTAR /MSGU
 // =====================================================
 
 async function registerCommand() {
@@ -115,63 +108,57 @@ async function registerCommand() {
     console.log("/msgu registado com sucesso!");
 
   } catch (error) {
-    console.error("========================================");
-    console.error("ERRO AO REGISTAR /msgu");
+    console.error("ERRO AO REGISTAR /msgu:");
     console.error(error);
-    console.error("========================================");
 
     throw error;
   }
 }
 
 // =====================================================
-// BOT PRONTO
+// BOT ONLINE
 // =====================================================
 
-client.once("clientReady", async () => {
-  console.log("========================================");
-  console.log("BOT ONLINE");
-  console.log(`Nome: ${client.user.tag}`);
-  console.log(`ID: ${client.user.id}`);
-  console.log("========================================");
+client.once("clientReady", async function () {
+  console.log("----------------------------------------");
+  console.log("BOT ONLINE: " + client.user.tag);
+  console.log("ID DO BOT: " + client.user.id);
+  console.log("----------------------------------------");
 
   try {
     await registerCommand();
   } catch (error) {
-    console.error(
-      "O bot entrou online, mas não conseguiu registar /msgu."
-    );
+    console.error("Não foi possível registar o /msgu.");
   }
 });
 
 // =====================================================
-// INTERAÇÕES
+// /MSGU
 // =====================================================
 
-client.on("interactionCreate", async interaction => {
-  // Ignorar tudo que não seja comando slash
+client.on("interactionCreate", async function (interaction) {
+
   if (!interaction.isChatInputCommand()) {
     return;
   }
 
-  // Ignorar outros comandos
   if (interaction.commandName !== "msgu") {
     return;
   }
 
-  console.log("========================================");
-  console.log("/msgu recebido");
-  console.log(`Utilizador: ${interaction.user.tag}`);
-  console.log(`Canal: ${interaction.channelId}`);
-  console.log("========================================");
+  console.log("----------------------------------------");
+  console.log("/msgu recebido!");
+  console.log("Utilizador: " + interaction.user.tag);
+  console.log("Canal: " + interaction.channelId);
+  console.log("----------------------------------------");
 
   try {
+
     const texto = interaction.options.getString(
       "texto",
       true
     );
 
-    // IMPORTANTE:
     // Responder imediatamente ao Discord.
     await interaction.reply({
       content: "Mensagem enviada.",
@@ -180,13 +167,13 @@ client.on("interactionCreate", async interaction => {
 
     console.log("Interação respondida.");
 
-    // Verificar se existe canal
+    // Verificar canal.
     if (!interaction.channel) {
-      console.error("Canal não encontrado.");
+      console.error("ERRO: canal não encontrado.");
       return;
     }
 
-    // Enviar mensagem oficial
+    // Enviar mensagem no canal.
     await interaction.channel.send({
       content: texto
     });
@@ -195,26 +182,35 @@ client.on("interactionCreate", async interaction => {
     console.log(texto);
 
   } catch (error) {
-    console.error("========================================");
-    console.error("ERRO NO /msgu");
+
+    console.error("----------------------------------------");
+    console.error("ERRO NO /msgu:");
     console.error(error);
-    console.error("========================================");
+    console.error("----------------------------------------");
 
     try {
+
       if (interaction.replied || interaction.deferred) {
+
         await interaction.followUp({
           content: "Ocorreu um erro ao enviar a mensagem.",
           ephemeral: true
         });
+
       } else {
+
         await interaction.reply({
           content: "Ocorreu um erro ao executar o comando.",
           ephemeral: true
         });
+
       }
+
     } catch (replyError) {
-      console.error("Erro ao responder ao Discord:");
+
+      console.error("ERRO AO RESPONDER AO DISCORD:");
       console.error(replyError);
+
     }
   }
 });
@@ -224,16 +220,19 @@ client.on("interactionCreate", async interaction => {
 // =====================================================
 
 async function start() {
+
   try {
+
     console.log("A iniciar...");
 
     await client.login(TOKEN);
 
   } catch (error) {
-    console.error("========================================");
-    console.error("ERRO AO FAZER LOGIN NO DISCORD");
+
+    console.error("----------------------------------------");
+    console.error("ERRO AO FAZER LOGIN NO DISCORD:");
     console.error(error);
-    console.error("========================================");
+    console.error("----------------------------------------");
 
     process.exit(1);
   }
@@ -245,12 +244,12 @@ start();
 // ERROS GLOBAIS
 // =====================================================
 
-process.on("unhandledRejection", error => {
+process.on("unhandledRejection", function (error) {
   console.error("UNHANDLED REJECTION:");
   console.error(error);
 });
 
-process.on("uncaughtException", error => {
+process.on("uncaughtException", function (error) {
   console.error("UNCAUGHT EXCEPTION:");
   console.error(error);
 });
