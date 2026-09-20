@@ -1,4 +1,3 @@
-```js
 const {
   Client,
   GatewayIntentBits,
@@ -106,7 +105,6 @@ async function registerCommand() {
     );
 
     console.log("/msgu registado com sucesso!");
-
   } catch (error) {
     console.error("ERRO AO REGISTAR /msgu:");
     console.error(error);
@@ -137,7 +135,6 @@ client.once("clientReady", async function () {
 // =====================================================
 
 client.on("interactionCreate", async function (interaction) {
-
   if (!interaction.isChatInputCommand()) {
     return;
   }
@@ -153,13 +150,12 @@ client.on("interactionCreate", async function (interaction) {
   console.log("----------------------------------------");
 
   try {
-
     const texto = interaction.options.getString(
       "texto",
       true
     );
 
-    // Responder imediatamente ao Discord.
+    // Responder imediatamente ao Discord
     await interaction.reply({
       content: "Mensagem enviada.",
       ephemeral: true
@@ -167,13 +163,12 @@ client.on("interactionCreate", async function (interaction) {
 
     console.log("Interação respondida.");
 
-    // Verificar canal.
     if (!interaction.channel) {
       console.error("ERRO: canal não encontrado.");
       return;
     }
 
-    // Enviar mensagem no canal.
+    // Enviar a mensagem no canal
     await interaction.channel.send({
       content: texto
     });
@@ -182,35 +177,26 @@ client.on("interactionCreate", async function (interaction) {
     console.log(texto);
 
   } catch (error) {
-
     console.error("----------------------------------------");
     console.error("ERRO NO /msgu:");
     console.error(error);
     console.error("----------------------------------------");
 
     try {
-
       if (interaction.replied || interaction.deferred) {
-
         await interaction.followUp({
           content: "Ocorreu um erro ao enviar a mensagem.",
           ephemeral: true
         });
-
       } else {
-
         await interaction.reply({
           content: "Ocorreu um erro ao executar o comando.",
           ephemeral: true
         });
-
       }
-
     } catch (replyError) {
-
       console.error("ERRO AO RESPONDER AO DISCORD:");
       console.error(replyError);
-
     }
   }
 });
@@ -220,15 +206,12 @@ client.on("interactionCreate", async function (interaction) {
 // =====================================================
 
 async function start() {
-
   try {
-
     console.log("A iniciar...");
 
     await client.login(TOKEN);
 
   } catch (error) {
-
     console.error("----------------------------------------");
     console.error("ERRO AO FAZER LOGIN NO DISCORD:");
     console.error(error);
@@ -253,4 +236,3 @@ process.on("uncaughtException", function (error) {
   console.error("UNCAUGHT EXCEPTION:");
   console.error(error);
 });
-```
