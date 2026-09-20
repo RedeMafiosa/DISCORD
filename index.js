@@ -9,31 +9,51 @@ const {
 
 const http = require("http");
 
-// ======================================================
+// =====================================================
 // CONFIGURAÇÃO
-// ======================================================
+// =====================================================
 
+// NUNCA colocar o token diretamente neste arquivo.
+// No Render, criar:
+// TOKEN = teu_novo_token
 const TOKEN = process.env.TOKEN;
 
 const CLIENT_ID = "1403430139647365180";
 const GUILD_ID = "1550134429161230407";
 
-const PORT = process.env.PORT || 3000;
+const PORT = Number(process.env.PORT) || 10000;
 
-// ======================================================
-// VERIFICAR TOKEN
-// ======================================================
+// =====================================================
+// VERIFICAÇÃO
+// =====================================================
 
 if (!TOKEN) {
-  console.error("ERRO: TOKEN não configurado no Render.");
+  console.error("========================================");
+  console.error("ERRO: TOKEN não está configurado.");
+  console.error("No Render, crie a variável:");
+  console.error("TOKEN = teu token do bot");
+  console.error("========================================");
   process.exit(1);
 }
 
-// ======================================================
-// SERVIDOR HTTP - RENDER
-// ======================================================
+// =====================================================
+// SERVIDOR HTTP PARA O RENDER
+// =====================================================
 
 const server = http.createServer((req, res) => {
+  if (req.url === "/health") {
+    res.writeHead(200, {
+      "Content-Type": "application/json"
+    });
+
+    res.end(JSON.stringify({
+      status: "ok",
+      bot: client.isReady()
+    }));
+
+    return;
+  }
+
   res.writeHead(200, {
     "Content-Type": "text/plain; charset=utf-8"
   });
@@ -45,9 +65,9 @@ server.listen(PORT, "0.0.0.0", () => {
   console.log(`Servidor HTTP ativo na porta ${PORT}`);
 });
 
-// ======================================================
+// =====================================================
 // CLIENTE DISCORD
-// ======================================================
+// =====================================================
 
 const client = new Client({
   intents: [
@@ -55,9 +75,9 @@ const client = new Client({
   ]
 });
 
-// ======================================================
+// =====================================================
 // COMANDO /MSGU
-// ======================================================
+// =====================================================
 
 const command = new SlashCommandBuilder()
   .setName("msgu")
@@ -70,9 +90,9 @@ const command = new SlashCommandBuilder()
       .setMaxLength(2000)
   );
 
-// ======================================================
+// =====================================================
 // REGISTAR COMANDO
-// ======================================================
+// =====================================================
 
 async function registerCommand() {
   console.log("A registar o comando /msgu...");
@@ -95,37 +115,41 @@ async function registerCommand() {
     console.log("/msgu registado com sucesso!");
 
   } catch (error) {
-    console.error("ERRO AO REGISTAR /msgu:");
-
-    if (error?.status === 401) {
-      console.error("TOKEN INVÁLIDO OU REVOGADO.");
-    }
-
+    console.error("========================================");
+    console.error("ERRO AO REGISTAR /msgu");
     console.error(error);
+    console.error("========================================");
+
+    throw error;
   }
 }
 
-// ======================================================
+// =====================================================
 // BOT PRONTO
-// ======================================================
+// =====================================================
 
 client.once("clientReady", async () => {
-  console.log("=================================");
-  console.log("BOT ONLINE: " + client.user.tag);
-  console.log("ID DO BOT: " + client.user.id);
-  console.log("=================================");
+  console.log("========================================");
+  console.log("BOT ONLINE");
+  console.log(`Nome: ${client.user.tag}`);
+  console.log(`ID: ${client.user.id}`);
+  console.log("========================================");
 
-  // Regista o comando somente depois do login.
-  await registerCommand();
+  try {
+    await registerCommand();
+  } catch (error) {
+    console.error(
+      "O bot entrou online, mas não conseguiu registar /msgu."
+    );
+  }
 });
 
-// ======================================================
-// /MSGU
-// ======================================================
+// =====================================================
+// INTERAÇÕES
+// =====================================================
 
 client.on("interactionCreate", async interaction => {
-
-  // Ignorar outras interações
+  // Ignorar tudo que não seja comando slash
   if (!interaction.isChatInputCommand()) {
     return;
   }
@@ -135,43 +159,34 @@ client.on("interactionCreate", async interaction => {
     return;
   }
 
-  console.log("=================================");
-  console.log("/msgu recebido!");
-  console.log("Utilizador:", interaction.user.tag);
-  console.log("Canal:", interaction.channelId);
-  console.log("=================================");
+  console.log("========================================");
+  console.log("/msgu recebido");
+  console.log(`Utilizador: ${interaction.user.tag}`);
+  console.log(`Canal: ${interaction.channelId}`);
+  console.log("========================================");
 
   try {
-
     const texto = interaction.options.getString(
       "texto",
       true
     );
 
-    // ==================================================
-    // RESPONDER IMEDIATAMENTE AO DISCORD
-    // ==================================================
-
+    // IMPORTANTE:
+    // Responder imediatamente ao Discord.
     await interaction.reply({
       content: "Mensagem enviada.",
       ephemeral: true
     });
 
-    console.log("Resposta da interação enviada.");
+    console.log("Interação respondida.");
 
-    // ==================================================
-    // VERIFICAR CANAL
-    // ==================================================
-
+    // Verificar se existe canal
     if (!interaction.channel) {
-      console.error("ERRO: Não foi possível encontrar o canal.");
+      console.error("Canal não encontrado.");
       return;
     }
 
-    // ==================================================
-    // ENVIAR MENSAGEM
-    // ==================================================
-
+    // Enviar mensagem oficial
     await interaction.channel.send({
       content: texto
     });
@@ -180,57 +195,45 @@ client.on("interactionCreate", async interaction => {
     console.log(texto);
 
   } catch (error) {
-
-    console.error("=================================");
-    console.error("ERRO NO /msgu:");
+    console.error("========================================");
+    console.error("ERRO NO /msgu");
     console.error(error);
-    console.error("=================================");
+    console.error("========================================");
 
     try {
-
       if (interaction.replied || interaction.deferred) {
-
         await interaction.followUp({
           content: "Ocorreu um erro ao enviar a mensagem.",
           ephemeral: true
         });
-
       } else {
-
         await interaction.reply({
           content: "Ocorreu um erro ao executar o comando.",
           ephemeral: true
         });
-
       }
-
     } catch (replyError) {
-
-      console.error("ERRO AO RESPONDER AO DISCORD:");
+      console.error("Erro ao responder ao Discord:");
       console.error(replyError);
-
     }
   }
 });
 
-// ======================================================
+// =====================================================
 // LOGIN
-// ======================================================
+// =====================================================
 
 async function start() {
-
   try {
-
-    console.log("A iniciar o bot...");
+    console.log("A iniciar...");
 
     await client.login(TOKEN);
 
   } catch (error) {
-
-    console.error("=================================");
-    console.error("ERRO AO FAZER LOGIN NO DISCORD:");
+    console.error("========================================");
+    console.error("ERRO AO FAZER LOGIN NO DISCORD");
     console.error(error);
-    console.error("=================================");
+    console.error("========================================");
 
     process.exit(1);
   }
@@ -238,9 +241,9 @@ async function start() {
 
 start();
 
-// ======================================================
+// =====================================================
 // ERROS GLOBAIS
-// ======================================================
+// =====================================================
 
 process.on("unhandledRejection", error => {
   console.error("UNHANDLED REJECTION:");
